@@ -1,0 +1,49 @@
+name: Build Bangla News APK
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'lib/**'
+      - '.github/workflows/**'
+      - 'README.md'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Create Flutter project
+        run: flutter create --project-name bangla_news --org com.banglanews --platforms android bangla_news_app
+      - name: Add app dependencies
+        working-directory: bangla_news_app
+        run: flutter pub add http xml url_launcher
+      - name: Copy application source
+        run: |
+          mkdir -p bangla_news_app/lib
+          cp lib/main.dart bangla_news_app/lib/main.dart
+      - name: Build release APK
+        working-directory: bangla_news_app
+        run: flutter build apk --release
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: bangla-news-release-apk
+          path: bangla_news_app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
