@@ -34,6 +34,9 @@ class NewsItem {
 }
 
 const sources = <NewsSource>[
+  // Google News Bangladesh provides a resilient combined feed when publisher RSS
+  // endpoints are unavailable or block direct mobile requests.
+  NewsSource('গুগল নিউজ বাংলাদেশ', 'https://news.google.com/rss?hl=bn&gl=BD&ceid=BD:bn'),
   NewsSource('জাগো নিউজ ২৪', 'https://www.jagonews24.com/rss/rss.xml'),
   NewsSource('বাংলা ট্রিবিউন', 'https://www.banglatribune.com/feed'),
   NewsSource('রাইজিংবিডি', 'https://www.risingbd.com/rss/rss.xml'),
