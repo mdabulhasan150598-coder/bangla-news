@@ -37,9 +37,13 @@ jobs:
         run: |
           mkdir -p bangla_news_app/lib
           cp lib/main.dart bangla_news_app/lib/main.dart
-      - name: Build release APK
+      - name: Resolve Flutter packages
         working-directory: bangla_news_app
-        run: flutter build apk --release
+        run: flutter pub get
+
+      - name: Build release APK
+        working-directory: bangla_news_app/android
+        run: ./gradlew assembleRelease -x :url_launcher_android:lintVitalAnalyzeRelease
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
