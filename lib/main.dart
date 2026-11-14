@@ -90,7 +90,8 @@ class _NewsHomePageState extends State<NewsHomePage> {
     for (final node in entries) {
       String child(String name) => node.findElements(name).isEmpty ? '' : node.findElements(name).first.innerText.trim();
       final title = cleanText(child('title'));
-      final linkElement = node.findElements('link').firstOrNull;
+      final linkElements = node.findElements('link');
+      final linkElement = linkElements.isEmpty ? null : linkElements.first;
       var link = child('link');
       if (link.isEmpty && linkElement != null) link = linkElement.getAttribute('href') ?? '';
       final description = child('description').isNotEmpty ? child('description') : child('summary').isNotEmpty ? child('summary') : child('content');
@@ -141,7 +142,8 @@ class _NewsHomePageState extends State<NewsHomePage> {
 
   String timeLabel(DateTime? date) {
     if (date == null) return 'সময় উল্লেখ নেই';
-    final local = date.toLocal(), now = DateTime.now(), diff = now.difference(date.toLocal());
+    final local = date.toLocal();
+    final diff = DateTime.now().difference(local);
     if (diff.inMinutes < 1 && diff.inSeconds >= 0) return 'এইমাত্র';
     if (diff.inMinutes < 60 && diff.inMinutes >= 0) return '\${diff.inMinutes} মিনিট আগে';
     if (diff.inHours < 24 && diff.inHours >= 0) return '\${diff.inHours} ঘণ্টা আগে';
