@@ -30,6 +30,17 @@ jobs:
           cache: true
       - name: Create Flutter project
         run: flutter create --project-name bangla_news --org com.banglanews --platforms android bangla_news_app
+      - name: Add Android internet permission
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("bangla_news_app/android/app/src/main/AndroidManifest.xml")
+          s = p.read_text()
+          permission = '    <uses-permission android:name="android.permission.INTERNET" />\\n'
+          if "android.permission.INTERNET" not in s:
+              s = s.replace("<application", permission + "    <application", 1)
+          p.write_text(s)
+          PY
       - name: Add app dependencies
         working-directory: bangla_news_app
         run: flutter pub add http xml url_launcher
