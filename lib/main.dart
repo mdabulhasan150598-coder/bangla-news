@@ -11,8 +11,9 @@ class BanglaNewsApp extends StatelessWidget {
     title: 'বাংলা নিউজ',
     theme: ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF087F8C)),
-      scaffoldBackgroundColor: const Color(0xFFF4F7FA),
+      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF147D72), brightness: Brightness.light),
+      scaffoldBackgroundColor: const Color(0xFFF6F7F9),
+      appBarTheme: const AppBarTheme(centerTitle: false, elevation: 0, scrolledUnderElevation: 0, backgroundColor: Colors.white, foregroundColor: Color(0xFF17212B)),
     ),
     home: const DirectoryPage(),
   );
@@ -119,28 +120,37 @@ class _DirectoryPageState extends State<DirectoryPage> {
     final items = filtered;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color(0xFF10243A),
-        foregroundColor: Colors.white,
-        title: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('বাংলা নিউজ', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
-          Text('বাংলাদেশের সংবাদমাধ্যম এক জায়গায়', style: TextStyle(fontSize: 11, color: Color(0xFFD4E8EC))),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF17212B),
+        titleSpacing: 4,
+        title: Row(children: [
+          Container(width: 38, height: 38, decoration: BoxDecoration(
+            color: const Color(0xFFE8F4F1), borderRadius: BorderRadius.circular(12)),
+            child: const Icon(Icons.newspaper_rounded, color: Color(0xFF147D72), size: 23)),
+          const SizedBox(width: 10),
+          const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('বাংলা নিউজ', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -0.4)),
+            Text('বাংলাদেশের মিডিয়া ডিরেক্টরি', style: TextStyle(fontSize: 10, color: Color(0xFF7C8792))),
+          ]),
         ]),
       ),
       body: Column(children: [
         Container(
-          color: const Color(0xFF10243A),
-          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+          color: const Color(0xFFF6F7F9),
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
           child: TextField(
             controller: search,
             onChanged: (v) => setState(() => query = v),
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(color: Color(0xFF17212B), fontSize: 14),
             decoration: InputDecoration(
-              hintText: 'পত্রিকা বা চ্যানেলের নাম লিখুন',
-              hintStyle: const TextStyle(color: Color(0xFFB7C8D4)),
-              prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFFB7C8D4)),
-              suffixIcon: query.isEmpty ? null : IconButton(onPressed: () { search.clear(); setState(() => query = ''); }, icon: const Icon(Icons.close, color: Colors.white)),
-              filled: true, fillColor: const Color(0xFF203A52),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
+              hintText: 'পত্রিকা বা চ্যানেলের নাম খুঁজুন',
+              hintStyle: const TextStyle(color: Color(0xFF9AA4AE), fontSize: 13),
+              prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF7E8A95), size: 21),
+              suffixIcon: query.isEmpty ? null : IconButton(onPressed: () { search.clear(); setState(() => query = ''); }, icon: const Icon(Icons.close, color: Color(0xFF7E8A95))),
+              filled: true, fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(vertical: 15),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFFE9EDF0))),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF147D72), width: 1.4)),
             ),
           ),
         ),
@@ -156,20 +166,22 @@ class _DirectoryPageState extends State<DirectoryPage> {
               return ChoiceChip(
                 label: Text(c), selected: active,
                 onSelected: (_) => setState(() => selected = c),
-                selectedColor: const Color(0xFF087F8C),
+                selectedColor: const Color(0xFF147D72),
                 backgroundColor: Colors.white,
-                labelStyle: TextStyle(color: active ? Colors.white : const Color(0xFF34495E), fontSize: 11, fontWeight: FontWeight.w700),
-                side: BorderSide(color: active ? const Color(0xFF087F8C) : const Color(0xFFE0E7ED)),
+                labelStyle: TextStyle(color: active ? Colors.white : const Color(0xFF52606D), fontSize: 11, fontWeight: FontWeight.w700),
+                side: BorderSide(color: active ? const Color(0xFF147D72) : const Color(0xFFE9EDF0)),
                 showCheckmark: false,
               );
             },
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 5, 16, 9),
+          padding: const EdgeInsets.fromLTRB(18, 7, 18, 11),
           child: Row(children: [
-            const Expanded(child: Text('সংবাদমাধ্যমের তালিকা', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF172D42)))),
-            Text('${items.length}টি', style: const TextStyle(color: Color(0xFF718096), fontSize: 12, fontWeight: FontWeight.w700)),
+            const Expanded(child: Text('সংবাদমাধ্যম', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF17212B), letterSpacing: -0.3))),
+            Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(color: const Color(0xFFE8F4F1), borderRadius: BorderRadius.circular(20)),
+              child: Text('${items.length}টি', style: const TextStyle(color: Color(0xFF147D72), fontSize: 11, fontWeight: FontWeight.w800))),
           ]),
         ),
         Expanded(
@@ -178,30 +190,30 @@ class _DirectoryPageState extends State<DirectoryPage> {
             : ListView.separated(
                 padding: const EdgeInsets.fromLTRB(14, 0, 14, 20),
                 itemCount: items.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (_, __) => const SizedBox(height: 10),
                 itemBuilder: (context, i) {
                   final item = items[i];
                   return Material(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
+                    borderRadius: BorderRadius.circular(18),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(18),
                       onTap: () => openMedia(item),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
                         child: Row(children: [
                           Container(
-                            width: 44, height: 44,
-                            decoration: BoxDecoration(color: const Color(0xFFEAF5F5), borderRadius: BorderRadius.circular(12)),
-                            child: Icon(categoryIcon(item.category), color: const Color(0xFF087F8C), size: 23),
+                            width: 46, height: 46,
+                            decoration: BoxDecoration(color: const Color(0xFFEAF4F1), borderRadius: BorderRadius.circular(15)),
+                            child: Icon(categoryIcon(item.category), color: const Color(0xFF147D72), size: 23),
                           ),
                           const SizedBox(width: 12),
                           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(item.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1C3044))),
-                            const SizedBox(height: 3),
-                            Text(item.location + ' • ' + item.category, style: const TextStyle(fontSize: 10, color: Color(0xFF7A8997))),
+                            Text(item.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w750, color: Color(0xFF202B35))),
+                            const SizedBox(height: 4),
+                            Text(item.location + '  ·  ' + item.category, style: const TextStyle(fontSize: 10, color: Color(0xFF8A959F))),
                           ])),
-                          const Icon(Icons.open_in_new_rounded, size: 18, color: Color(0xFF087F8C)),
+                          const Icon(Icons.chevron_right_rounded, size: 22, color: Color(0xFF9AA5AE)),
                         ]),
                       ),
                     ),
@@ -212,8 +224,8 @@ class _DirectoryPageState extends State<DirectoryPage> {
         Container(
           width: double.infinity,
           color: Colors.white,
-          padding: const EdgeInsets.fromLTRB(12, 9, 12, 11),
-          child: const Text('সংবাদ পড়তে বা দেখতে তালিকার নামের ওপর চাপ দিন। সব ওয়েবসাইট তাদের নিজস্ব কর্তৃপক্ষ পরিচালনা করে।', textAlign: TextAlign.center, style: TextStyle(fontSize: 9, color: Color(0xFF82909D))),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+          child: const Text('পছন্দের সংবাদমাধ্যমে চাপ দিন  ·  ওয়েবসাইট অ্যাপের ভেতরেই খুলবে', textAlign: TextAlign.center, style: TextStyle(fontSize: 9, color: Color(0xFF89949E))),
         ),
       ]),
     );
