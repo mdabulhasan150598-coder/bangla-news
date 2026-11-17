@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 void main() => runApp(const BanglaNewsApp());
 
@@ -110,12 +110,8 @@ class _DirectoryPageState extends State<DirectoryPage> {
     }
   }
 
-  Future<void> openMedia(MediaItem item) async {
-    final uri = Uri.parse(item.url);
-    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ওয়েবসাইটটি খোলা যাচ্ছে না। পরে আবার চেষ্টা করুন।')));
-    }
+  void openMedia(MediaItem item) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => MediaWebPage(item: item)));
   }
 
   @override
@@ -222,4 +218,87 @@ class _DirectoryPageState extends State<DirectoryPage> {
       ]),
     );
   }
+}
+
+
+class MediaWebPage extends StatefulWidget {
+  final MediaItem item;
+  const MediaWebPage({super.key, required this.item});
+  @override
+  State<MediaWebPage> createState() => _MediaWebPageState();
+}
+
+class _MediaWebPageState extends State<MediaWebPage> {
+  late final WebViewController controller;
+  bool loading = true;
+  bool canGoBack = false;
+  bool canGoForward = false;
+  String pageTitle = '';
+
+  @override
+  void initState() {
+    super.initState();
+    controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..setNavigationDelegate(NavigationDelegate(
+        onPageStarted: (_) => setState(() => loading = true),
+        onPageFinished: (_) async {
+          final back = await controller.canGoBack();
+          final forward = await controller.canGoForward();
+          final title = await controller.getTitle() ?? '';
+          if (!mounted) return;
+          setState(() { loading = false; canGoBack = back; canGoForward = forward; pageTitle = title; });
+        },
+        onWebResourceError: (error) {
+          if (!mounted || !error.isForMainFrame!) return;
+          setState(() => loading = false);
+        },
+      ))
+      ..loadRequest(Uri.parse(widget.item.url));
+  }
+
+  Future<bool> handleBack() async {
+    if (await controller.canGoBack()) {
+      await controller.goBack();
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, result) async {
+      if (!didPop && await handleBack() && mounted) Navigator.of(context).pop();
+    },
+    child: Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF10243A),
+        foregroundColor: Colors.white,
+        title: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(widget.item.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+          Text(pageTitle.isEmpty ? widget.item.url : pageTitle,
+            maxLines: 1, overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 10, color: Color(0xFFD4E8EC))),
+        ]),
+        actions: [
+          IconButton(tooltip: 'রিফ্রেশ', onPressed: () => controller.reload(), icon: const Icon(Icons.refresh)),
+        ],
+      ),
+      body: Column(children: [
+        if (loading) const LinearProgressIndicator(minHeight: 2),
+        Expanded(child: WebViewWidget(controller: controller)),
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+          child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
+            IconButton(tooltip: 'পেছনে', onPressed: canGoBack ? () => controller.goBack() : null, icon: const Icon(Icons.arrow_back)),
+            IconButton(tooltip: 'সামনে', onPressed: canGoForward ? () => controller.goForward() : null, icon: const Icon(Icons.arrow_forward)),
+            IconButton(tooltip: 'হোম', onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.home_outlined)),
+            IconButton(tooltip: 'রিফ্রেশ', onPressed: () => controller.reload(), icon: const Icon(Icons.refresh)),
+          ]),
+        ),
+      ]),
+    ),
+  );
 }
