@@ -1,7 +1,4 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'package:xml/xml.dart' as xml;
 import 'package:url_launcher/url_launcher.dart';
 
 void main() => runApp(const BanglaNewsApp());
@@ -16,252 +13,212 @@ class BanglaNewsApp extends StatelessWidget {
       useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF087F8C)),
       scaffoldBackgroundColor: const Color(0xFFF4F7FA),
-      appBarTheme: const AppBarTheme(backgroundColor: Color(0xFF10243A), foregroundColor: Colors.white),
     ),
-    home: const NewsHomePage(),
+    home: const DirectoryPage(),
   );
 }
 
-class NewsSource {
-  final String name, url;
-  const NewsSource(this.name, this.url);
+class MediaItem {
+  final String name, category, url, location;
+  const MediaItem(this.name, this.category, this.url, {this.location = 'বাংলাদেশ'});
 }
 
-class NewsItem {
-  final String title, summary, link, source, category;
-  final DateTime? date;
-  NewsItem({required this.title, required this.summary, required this.link, required this.source, required this.category, required this.date});
-}
+const categories = ['সব', 'জাতীয় সংবাদপত্র', 'অনলাইন সংবাদমাধ্যম', 'টিভি চ্যানেল', 'ই-পেপার', 'রেডিও', 'স্থানীয় সংবাদপত্র', 'ইংরেজি সংবাদমাধ্যম'];
 
-const sources = <NewsSource>[
-  // Google News Bangladesh provides a resilient combined feed when publisher RSS
-  // endpoints are unavailable or block direct mobile requests.
-  NewsSource('গুগল নিউজ বাংলাদেশ', 'https://news.google.com/rss?hl=bn&gl=BD&ceid=BD:bn'),
-  NewsSource('জাগো নিউজ ২৪', 'https://www.jagonews24.com/rss/rss.xml'),
-  NewsSource('বাংলা ট্রিবিউন', 'https://www.banglatribune.com/feed'),
-  NewsSource('রাইজিংবিডি', 'https://www.risingbd.com/rss/rss.xml'),
-  NewsSource('বাংলানিউজ২৪', 'https://www.banglanews24.com/rss/rss.xml'),
-  NewsSource('বিডি২৪লাইভ', 'https://www.bd24live.com/feed'),
-  NewsSource('প্রথম আলো', 'https://www.prothomalo.com/feed/'),
+const media = <MediaItem>[
+  MediaItem('প্রথম আলো', 'জাতীয় সংবাদপত্র', 'https://www.prothomalo.com'),
+  MediaItem('বাংলাদেশ প্রতিদিন', 'জাতীয় সংবাদপত্র', 'https://www.bd-pratidin.com'),
+  MediaItem('কালের কণ্ঠ', 'জাতীয় সংবাদপত্র', 'https://www.kalerkantho.com'),
+  MediaItem('সমকাল', 'জাতীয় সংবাদপত্র', 'https://samakal.com'),
+  MediaItem('যুগান্তর', 'জাতীয় সংবাদপত্র', 'https://www.jugantor.com'),
+  MediaItem('দৈনিক ইত্তেফাক', 'জাতীয় সংবাদপত্র', 'https://www.ittefaq.com.bd'),
+  MediaItem('মানবজমিন', 'জাতীয় সংবাদপত্র', 'https://mzamin.com'),
+  MediaItem('নয়া দিগন্ত', 'জাতীয় সংবাদপত্র', 'https://www.dailynayadiganta.com'),
+  MediaItem('বণিক বার্তা', 'জাতীয় সংবাদপত্র', 'https://bonikbarta.net'),
+  MediaItem('দৈনিক ইনকিলাব', 'জাতীয় সংবাদপত্র', 'https://dailyinqilab.com'),
+  MediaItem('জনকণ্ঠ', 'জাতীয় সংবাদপত্র', 'https://www.dailyjanakantha.com'),
+  MediaItem('আমাদের সময়', 'জাতীয় সংবাদপত্র', 'https://www.dainikamadershomoy.com'),
+  MediaItem('BDnews24', 'অনলাইন সংবাদমাধ্যম', 'https://bangla.bdnews24.com'),
+  MediaItem('বাংলানিউজ২৪', 'অনলাইন সংবাদমাধ্যম', 'https://www.banglanews24.com'),
+  MediaItem('বাংলা ট্রিবিউন', 'অনলাইন সংবাদমাধ্যম', 'https://www.banglatribune.com'),
+  MediaItem('জাগো নিউজ ২৪', 'অনলাইন সংবাদমাধ্যম', 'https://www.jagonews24.com'),
+  MediaItem('রাইজিংবিডি', 'অনলাইন সংবাদমাধ্যম', 'https://www.risingbd.com'),
+  MediaItem('ঢাকা পোস্ট', 'অনলাইন সংবাদমাধ্যম', 'https://www.dhakapost.com'),
+  MediaItem('ঢাকা টাইমস', 'অনলাইন সংবাদমাধ্যম', 'https://www.dhakatimes24.com'),
+  MediaItem('বার্তা২৪', 'অনলাইন সংবাদমাধ্যম', 'https://www.barta24.com'),
+  MediaItem('বাংলাদেশ সংবাদ সংস্থা (বাসস)', 'অনলাইন সংবাদমাধ্যম', 'https://www.bssnews.net'),
+  MediaItem('সময় নিউজ', 'অনলাইন সংবাদমাধ্যম', 'https://www.somoynews.tv'),
+  MediaItem('দৈনিক আজাদী', 'স্থানীয় সংবাদপত্র', 'https://dainikazadi.net', location: 'চট্টগ্রাম'),
+  MediaItem('দৈনিক পূর্বাঞ্চল', 'স্থানীয় সংবাদপত্র', 'https://purbanchal.com', location: 'খুলনা'),
+  MediaItem('দৈনিক করতোয়া', 'স্থানীয় সংবাদপত্র', 'https://www.karatoa.com.bd', location: 'বগুড়া'),
+  MediaItem('দৈনিক পূর্বকোণ', 'স্থানীয় সংবাদপত্র', 'https://www.dainikpurbokone.net', location: 'চট্টগ্রাম'),
+  MediaItem('দৈনিক গ্রামবাংলা', 'স্থানীয় সংবাদপত্র', 'https://www.gramerkagoj.com', location: 'যশোর'),
+  MediaItem('সময় টিভি', 'টিভি চ্যানেল', 'https://www.somoynews.tv'),
+  MediaItem('এনটিভি', 'টিভি চ্যানেল', 'https://www.ntvbd.com'),
+  MediaItem('চ্যানেল আই', 'টিভি চ্যানেল', 'https://www.channelionline.com'),
+  MediaItem('একাত্তর টিভি', 'টিভি চ্যানেল', 'https://ekattor.tv'),
+  MediaItem('আরটিভি', 'টিভি চ্যানেল', 'https://www.rtvonline.com'),
+  MediaItem('যমুনা টিভি', 'টিভি চ্যানেল', 'https://jamuna.tv'),
+  MediaItem('বিটিভি', 'টিভি চ্যানেল', 'https://btv.gov.bd'),
+  MediaItem('ইন্ডিপেনডেন্ট টিভি', 'টিভি চ্যানেল', 'https://www.independent24.com'),
+  MediaItem('ই-প্রথম আলো', 'ই-পেপার', 'https://epaper.prothomalo.com'),
+  MediaItem('ই-কালের কণ্ঠ', 'ই-পেপার', 'https://epaper.kalerkantho.com'),
+  MediaItem('ই-যুগান্তর', 'ই-পেপার', 'https://epaper.jugantor.com'),
+  MediaItem('ই-সমকাল', 'ই-পেপার', 'https://epaper.samakal.com'),
+  MediaItem('ইত্তেফাক ই-পেপার', 'ই-পেপার', 'https://epaper.ittefaq.com.bd'),
+  MediaItem('দ্য ডেইলি স্টার', 'ইংরেজি সংবাদমাধ্যম', 'https://www.thedailystar.net'),
+  MediaItem('ঢাকা ট্রিবিউন', 'ইংরেজি সংবাদমাধ্যম', 'https://www.dhakatribune.com'),
+  MediaItem('দ্য ফিন্যান্সিয়াল এক্সপ্রেস', 'ইংরেজি সংবাদমাধ্যম', 'https://thefinancialexpress.com.bd'),
+  MediaItem('নিউ এজ', 'ইংরেজি সংবাদমাধ্যম', 'https://www.newagebd.net'),
+  MediaItem('ডেইলি সান', 'ইংরেজি সংবাদমাধ্যম', 'https://www.daily-sun.com'),
+  MediaItem('বিবিসি বাংলা রেডিও', 'রেডিও', 'https://www.bbc.com/bengali'),
+  MediaItem('বাংলাদেশ বেতার', 'রেডিও', 'https://betar.gov.bd'),
+  MediaItem('রেডিও টুডে', 'রেডিও', 'https://www.radiotodaybd.fm'),
+  MediaItem('রেডিও ফূর্তি', 'রেডিও', 'https://radiofoorti.fm'),
 ];
 
-const categories = ['সর্বশেষ', 'জাতীয়', 'রাজনীতি', 'আন্তর্জাতিক', 'খেলাধুলা', 'অর্থনীতি', 'বিনোদন', 'প্রযুক্তি'];
-
-String cleanText(String value) => value
-  .replaceAll(RegExp(r'<[^>]*>'), ' ')
-  .replaceAll('&nbsp;', ' ').replaceAll('&amp;', '&')
-  .replaceAll('&quot;', '"').replaceAll('&#39;', "'")
-  .replaceAll(RegExp(r'\s+'), ' ').trim();
-
-String guessCategory(String text) {
-  if (RegExp(r'খেলা|ক্রিকেট|ফুটবল|বিশ্বকাপ|লিগ').hasMatch(text)) return 'খেলাধুলা';
-  if (RegExp(r'রাজনীতি|নির্বাচন|সংসদ|আওয়ামী লীগ|বিএনপি').hasMatch(text)) return 'রাজনীতি';
-  if (RegExp(r'বিশ্ব|যুক্তরাষ্ট্র|ভারত|পাকিস্তান|চীন|ইরান|ইসরায়েল|আন্তর্জাতিক').hasMatch(text)) return 'আন্তর্জাতিক';
-  if (RegExp(r'অর্থনীতি|ব্যাংক|শেয়ার|বাজার|ডলার|দাম|ব্যবসা|রপ্তানি').hasMatch(text)) return 'অর্থনীতি';
-  if (RegExp(r'সিনেমা|নাটক|অভিনয়|গান|বিনোদন|তারকা').hasMatch(text)) return 'বিনোদন';
-  if (RegExp(r'প্রযুক্তি|মোবাইল|স্মার্টফোন|কৃত্রিম বুদ্ধিমত্তা|এআই|ইন্টারনেট').hasMatch(text)) return 'প্রযুক্তি';
-  return 'জাতীয়';
+class DirectoryPage extends StatefulWidget {
+  const DirectoryPage({super.key});
+  @override
+  State<DirectoryPage> createState() => _DirectoryPageState();
 }
 
-class NewsHomePage extends StatefulWidget {
-  const NewsHomePage({super.key});
-  @override
-  State<NewsHomePage> createState() => _NewsHomePageState();
-}
-
-class _NewsHomePageState extends State<NewsHomePage> {
-  List<NewsItem> allNews = [];
-  bool loading = true;
-  String error = '', selectedCategory = 'সর্বশেষ', selectedSource = 'সব সংবাদমাধ্যম', searchText = '';
-  final searchController = TextEditingController();
+class _DirectoryPageState extends State<DirectoryPage> {
+  String selected = 'সব';
+  String query = '';
+  final search = TextEditingController();
 
   @override
-  void initState() { super.initState(); refreshNews(); }
-  @override
-  void dispose() { searchController.dispose(); super.dispose(); }
+  void dispose() { search.dispose(); super.dispose(); }
 
-  Future<List<NewsItem>> loadFeed(NewsSource source) async {
-    final response = await http.get(Uri.parse(source.url), headers: {
-      'User-Agent': 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36',
-      'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*',
-    }).timeout(const Duration(seconds: 16));
-    if (response.statusCode != 200) throw Exception('HTTP \${response.statusCode}');
-    final document = xml.XmlDocument.parse(response.body);
-    final nodes = document.findAllElements('item').toList();
-    final entries = nodes.isNotEmpty ? nodes : document.findAllElements('entry').toList();
-    final result = <NewsItem>[];
-    for (final node in entries) {
-      String child(String name) => node.findElements(name).isEmpty ? '' : node.findElements(name).first.innerText.trim();
-      final title = cleanText(child('title'));
-      final linkElements = node.findElements('link');
-      final linkElement = linkElements.isEmpty ? null : linkElements.first;
-      var link = child('link');
-      if (link.isEmpty && linkElement != null) link = linkElement.getAttribute('href') ?? '';
-      final description = child('description').isNotEmpty ? child('description') : child('summary').isNotEmpty ? child('summary') : child('content');
-      final dateText = child('pubDate').isNotEmpty ? child('pubDate') : child('published').isNotEmpty ? child('published') : child('updated');
-      DateTime? date = DateTime.tryParse(dateText);
-      if (date == null && dateText.isNotEmpty) {
-        try { date = DateTime.parse(dateText); } catch (_) {}
-      }
-      if (title.isEmpty || link.isEmpty) continue;
-      result.add(NewsItem(title: title, summary: cleanText(description), link: link, source: source.name, date: date, category: guessCategory('$title $description')));
-    }
-    return result;
-  }
-
-  Future<void> refreshNews() async {
-    setState(() { loading = true; error = ''; });
-    final results = await Future.wait(sources.map((source) async {
-      try { return await loadFeed(source); } catch (_) { return <NewsItem>[]; }
-    }));
-    final merged = results.expand((items) => items).toList();
-    merged.sort((a, b) {
-      if (a.date == null && b.date == null) return 0;
-      if (a.date == null) return 1;
-      if (b.date == null) return -1;
-      return b.date!.compareTo(a.date!);
-    });
-    if (!mounted) return;
-    setState(() {
-      allNews = merged;
-      loading = false;
-      if (merged.isEmpty) error = 'এ মুহূর্তে কোনো সংবাদ লোড করা যায়নি। ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।';
-    });
-  }
-
-  List<NewsItem> get visibleNews => allNews.where((item) {
-    final categoryMatch = selectedCategory == 'সর্বশেষ' || item.category == selectedCategory;
-    final sourceMatch = selectedSource == 'সব সংবাদমাধ্যম' || item.source == selectedSource;
-    final q = searchText.toLowerCase().trim();
-    return categoryMatch && sourceMatch && (q.isEmpty || item.title.toLowerCase().contains(q) || item.summary.toLowerCase().contains(q));
+  List<MediaItem> get filtered => media.where((m) {
+    final categoryMatch = selected == 'সব' || m.category == selected;
+    final q = query.trim().toLowerCase();
+    return categoryMatch && (q.isEmpty || m.name.toLowerCase().contains(q) || m.location.toLowerCase().contains(q));
   }).toList();
 
-  Future<void> openArticle(NewsItem item) async {
-    final uri = Uri.tryParse(item.link);
-    if (uri == null || !await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('সংবাদটি খোলা যাচ্ছে না।')));
+  IconData categoryIcon(String category) {
+    switch (category) {
+      case 'জাতীয় সংবাদপত্র': return Icons.newspaper_rounded;
+      case 'অনলাইন সংবাদমাধ্যম': return Icons.language_rounded;
+      case 'টিভি চ্যানেল': return Icons.tv_rounded;
+      case 'ই-পেপার': return Icons.menu_book_rounded;
+      case 'রেডিও': return Icons.radio_rounded;
+      case 'স্থানীয় সংবাদপত্র': return Icons.location_city_rounded;
+      case 'ইংরেজি সংবাদমাধ্যম': return Icons.translate_rounded;
+      default: return Icons.public_rounded;
     }
   }
 
-  String timeLabel(DateTime? date) {
-    if (date == null) return 'সময় উল্লেখ নেই';
-    final local = date.toLocal();
-    final diff = DateTime.now().difference(local);
-    if (diff.inMinutes < 1 && diff.inSeconds >= 0) return 'এইমাত্র';
-    if (diff.inMinutes < 60 && diff.inMinutes >= 0) return '\${diff.inMinutes} মিনিট আগে';
-    if (diff.inHours < 24 && diff.inHours >= 0) return '\${diff.inHours} ঘণ্টা আগে';
-    return '\${local.day}/\${local.month}/\${local.year}';
+  Future<void> openMedia(MediaItem item) async {
+    final uri = Uri.parse(item.url);
+    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ওয়েবসাইটটি খোলা যাচ্ছে না। পরে আবার চেষ্টা করুন।')));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final news = visibleNews;
+    final items = filtered;
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color(0xFF10243A),
+        foregroundColor: Colors.white,
         title: const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('বাংলা নিউজ', style: TextStyle(fontSize: 21, fontWeight: FontWeight.w800)),
-          Text('দেশের সংবাদ, এক জায়গায়', style: TextStyle(fontSize: 11, color: Color(0xFFD4E8EC))),
+          Text('বাংলাদেশের সংবাদমাধ্যম এক জায়গায়', style: TextStyle(fontSize: 11, color: Color(0xFFD4E8EC))),
         ]),
-        actions: [IconButton(tooltip: 'রিফ্রেশ', onPressed: loading ? null : refreshNews, icon: const Icon(Icons.refresh_rounded)), const SizedBox(width: 6)],
       ),
       body: Column(children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-          decoration: const BoxDecoration(color: Color(0xFF10243A), borderRadius: BorderRadius.vertical(bottom: Radius.circular(22))),
-          child: Column(children: [
-            TextField(
-              controller: searchController,
-              onChanged: (v) => setState(() => searchText = v),
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: 'সংবাদ খুঁজুন...', hintStyle: const TextStyle(color: Color(0xFFB7C8D4)),
-                prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFFB7C8D4)),
-                suffixIcon: searchText.isEmpty ? null : IconButton(onPressed: () { searchController.clear(); setState(() => searchText = ''); }, icon: const Icon(Icons.close, color: Colors.white)),
-                filled: true, fillColor: const Color(0xFF203A52), contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
-              ),
+          color: const Color(0xFF10243A),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+          child: TextField(
+            controller: search,
+            onChanged: (v) => setState(() => query = v),
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'পত্রিকা বা চ্যানেলের নাম লিখুন',
+              hintStyle: const TextStyle(color: Color(0xFFB7C8D4)),
+              prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFFB7C8D4)),
+              suffixIcon: query.isEmpty ? null : IconButton(onPressed: () { search.clear(); setState(() => query = ''); }, icon: const Icon(Icons.close, color: Colors.white)),
+              filled: true, fillColor: const Color(0xFF203A52),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide.none),
             ),
-            const SizedBox(height: 12),
-            SizedBox(height: 38, child: ListView.separated(
-              scrollDirection: Axis.horizontal, itemCount: categories.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
-              itemBuilder: (context, i) {
-                final item = categories[i], active = selectedCategory == categories[i];
-                return ChoiceChip(
-                  label: Text(item), selected: active, onSelected: (_) => setState(() => selectedCategory = item),
-                  selectedColor: const Color(0xFF19A6A0), backgroundColor: const Color(0xFF203A52),
-                  labelStyle: TextStyle(color: active ? Colors.white : const Color(0xFFD6E2E9), fontWeight: FontWeight.w600, fontSize: 12),
-                  side: BorderSide.none, showCheckmark: false, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                );
-              },
-            )),
-          ]),
+          ),
+        ),
+        SizedBox(
+          height: 54,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            scrollDirection: Axis.horizontal,
+            itemCount: categories.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 7),
+            itemBuilder: (context, i) {
+              final c = categories[i], active = c == selected;
+              return ChoiceChip(
+                label: Text(c), selected: active,
+                onSelected: (_) => setState(() => selected = c),
+                selectedColor: const Color(0xFF087F8C),
+                backgroundColor: Colors.white,
+                labelStyle: TextStyle(color: active ? Colors.white : const Color(0xFF34495E), fontSize: 11, fontWeight: FontWeight.w700),
+                side: BorderSide(color: active ? const Color(0xFF087F8C) : const Color(0xFFE0E7ED)),
+                showCheckmark: false,
+              );
+            },
+          ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 13, 16, 7),
+          padding: const EdgeInsets.fromLTRB(16, 5, 16, 9),
           child: Row(children: [
-            const Expanded(child: Text('সর্বশেষ সংবাদ', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF172D42)))),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE1E8EE))),
-              child: DropdownButtonHideUnderline(child: DropdownButton<String>(
-                value: selectedSource, icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 18),
-                style: const TextStyle(fontSize: 11, color: Color(0xFF34495E), fontWeight: FontWeight.w600),
-                items: ['সব সংবাদমাধ্যম', ...sources.map((s) => s.name)].map((s) => DropdownMenuItem(value: s, child: Text(s))).toList(),
-                onChanged: (v) => setState(() => selectedSource = v ?? 'সব সংবাদমাধ্যম'),
-              )),
-            ),
+            const Expanded(child: Text('সংবাদমাধ্যমের তালিকা', style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: Color(0xFF172D42)))),
+            Text('${items.length}টি', style: const TextStyle(color: Color(0xFF718096), fontSize: 12, fontWeight: FontWeight.w700)),
           ]),
         ),
-        Expanded(child: RefreshIndicator(
-          onRefresh: refreshNews,
-          child: loading && allNews.isEmpty
-            ? const Center(child: CircularProgressIndicator())
-            : news.isEmpty
-              ? ListView(children: [
-                  const SizedBox(height: 70),
-                  Icon(error.isNotEmpty ? Icons.wifi_off_rounded : Icons.article_outlined, size: 48, color: const Color(0xFF91A2B1)),
-                  const SizedBox(height: 14),
-                  Center(child: Padding(padding: const EdgeInsets.symmetric(horizontal: 28), child: Text(error.isNotEmpty ? error : 'এই বিভাগে কোনো সংবাদ পাওয়া যায়নি।', textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF607487), height: 1.5)))),
-                  const SizedBox(height: 16),
-                  Center(child: OutlinedButton.icon(onPressed: refreshNews, icon: const Icon(Icons.refresh), label: const Text('আবার চেষ্টা করুন'))),
-                ])
-              : ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(14, 5, 14, 24), itemCount: news.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
-                  itemBuilder: (context, index) {
-                    final item = news[index];
-                    return Material(
-                      color: Colors.white, borderRadius: BorderRadius.circular(17),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(17), onTap: () => openArticle(item),
-                        child: Padding(padding: const EdgeInsets.all(15), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                          Row(children: [
-                            Container(width: 7, height: 7, decoration: const BoxDecoration(color: Color(0xFF0C9A91), shape: BoxShape.circle)),
-                            const SizedBox(width: 7),
-                            Expanded(child: Text(item.source, style: const TextStyle(color: Color(0xFF087F8C), fontWeight: FontWeight.w800, fontSize: 11))),
-                            Text(timeLabel(item.date), style: const TextStyle(color: Color(0xFF8795A2), fontSize: 10)),
-                          ]),
-                          const SizedBox(height: 9),
-                          Text(item.title, style: const TextStyle(fontSize: 15, height: 1.45, fontWeight: FontWeight.w800, color: Color(0xFF1C3044))),
-                          if (item.summary.isNotEmpty) ...[
-                            const SizedBox(height: 7),
-                            Text(item.summary, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, height: 1.5, color: Color(0xFF657789))),
-                          ],
-                          const SizedBox(height: 10),
-                          Row(children: [
-                            Container(padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4), decoration: BoxDecoration(color: const Color(0xFFEAF5F5), borderRadius: BorderRadius.circular(7)), child: Text(item.category, style: const TextStyle(color: Color(0xFF087F8C), fontSize: 10, fontWeight: FontWeight.w700))),
-                            const Spacer(), const Text('মূল সংবাদ পড়ুন', style: TextStyle(color: Color(0xFF087F8C), fontSize: 11, fontWeight: FontWeight.w700)),
-                            const SizedBox(width: 3), const Icon(Icons.open_in_new_rounded, size: 13, color: Color(0xFF087F8C)),
-                          ]),
-                        ])),
+        Expanded(
+          child: items.isEmpty
+            ? const Center(child: Text('কোনো সংবাদমাধ্যম পাওয়া যায়নি।'))
+            : ListView.separated(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 20),
+                itemCount: items.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                itemBuilder: (context, i) {
+                  final item = items[i];
+                  return Material(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(15),
+                      onTap: () => openMedia(item),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                        child: Row(children: [
+                          Container(
+                            width: 44, height: 44,
+                            decoration: BoxDecoration(color: const Color(0xFFEAF5F5), borderRadius: BorderRadius.circular(12)),
+                            child: Icon(categoryIcon(item.category), color: const Color(0xFF087F8C), size: 23),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text(item.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: Color(0xFF1C3044))),
+                            const SizedBox(height: 3),
+                            Text(item.location + ' • ' + item.category, style: const TextStyle(fontSize: 10, color: Color(0xFF7A8997))),
+                          ])),
+                          const Icon(Icons.open_in_new_rounded, size: 18, color: Color(0xFF087F8C)),
+                        ]),
                       ),
-                    );
-                  },
-                ),
-        )),
-        Container(width: double.infinity, padding: const EdgeInsets.fromLTRB(12, 8, 12, 10), color: Colors.white,
-          child: const Text('শিরোনাম ও সংক্ষিপ্ত বিবরণ সংবাদমাধ্যমের RSS ফিড থেকে। সম্পূর্ণ সংবাদ পড়তে মূল ওয়েবসাইটে যান।', textAlign: TextAlign.center, style: TextStyle(fontSize: 9, color: Color(0xFF82909D)))),
+                    ),
+                  );
+                },
+              ),
+        ),
+        Container(
+          width: double.infinity,
+          color: Colors.white,
+          padding: const EdgeInsets.fromLTRB(12, 9, 12, 11),
+          child: const Text('সংবাদ পড়তে বা দেখতে তালিকার নামের ওপর চাপ দিন। সব ওয়েবসাইট তাদের নিজস্ব কর্তৃপক্ষ পরিচালনা করে।', textAlign: TextAlign.center, style: TextStyle(fontSize: 9, color: Color(0xFF82909D))),
+        ),
       ]),
     );
   }
