@@ -209,7 +209,7 @@ class _DirectoryPageState extends State<DirectoryPage> {
                           ),
                           const SizedBox(width: 12),
                           Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                            Text(item.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w750, color: Color(0xFF202B35))),
+                            Text(item.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF202B35))),
                             const SizedBox(height: 4),
                             Text(item.location + '  ·  ' + item.category, style: const TextStyle(fontSize: 10, color: Color(0xFF8A959F))),
                           ])),
