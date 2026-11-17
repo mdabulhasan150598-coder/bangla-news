@@ -43,7 +43,7 @@ jobs:
           PY
       - name: Add app dependencies
         working-directory: bangla_news_app
-        run: flutter pub add http xml url_launcher
+        run: flutter pub add webview_flutter
       - name: Copy application source
         run: |
           mkdir -p bangla_news_app/lib
@@ -54,7 +54,7 @@ jobs:
 
       - name: Build release APK
         working-directory: bangla_news_app/android
-        run: ./gradlew assembleRelease -x :url_launcher_android:lintVitalAnalyzeRelease
+        run: ./gradlew assembleRelease -x :webview_flutter_android:lintVitalAnalyzeRelease
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
